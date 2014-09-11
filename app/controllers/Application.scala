@@ -2,6 +2,8 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+import play.api.data._
+import play.api.data.Forms._
 
 object Application extends Controller {
 
@@ -12,3 +14,7 @@ object Application extends Controller {
   def newTask = TODO
   def deleteTask(id: Long) = TODO
 }
+
+val taskForm = Form(
+   "label" -> nonEmptyText
+)
