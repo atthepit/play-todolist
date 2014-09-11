@@ -15,7 +15,15 @@ object Application extends Controller {
   def tasks = Action {
     Ok(views.html.index(Task.all(), taskForm))
   }
-  def newTask = TODO
+  def newTask = Action { implicit request => 
+    taskForm.bindFromRequest.fold(
+      errors => BadRequest(views.html.index(Task.all(), taskForm)),
+      label => {
+        Task.create(label)
+        Redirect(routes.Application.tasks)
+      }
+    )
+  }
   def deleteTask(id: Long) = TODO
 
   val taskForm = Form(
