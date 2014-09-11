@@ -1,5 +1,6 @@
 # Play-TodoList
 
-Una app de prueba
+App de prueba en Play + Scala para la asignatura MADS, Universidad de Alicante.
 
-Pendiente: subir a Heroku
+Ya en Heroku:
+  [Play-TodoList](http://play-todolist-mads.herokuapp.com/)
