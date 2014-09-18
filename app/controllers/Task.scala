@@ -10,18 +10,32 @@ import models.Task
 
 object Tasks extends Controller {
 
+  val taskForm = Form(
+    "label" -> nonEmptyText
+  )
+
   def index = Action {
     Ok(Json.toJson(Task.all()))
   }
 
-  def newTask = TODO
+  def create = Action { implicit request => 
+    taskForm.bindFromRequest.fold(
+      formWithErrors => {
+        BadRequest(formWithErrors.errorsAsJson)
+      },
+      label => {
+        val id = Task.create(label)
+        Redirect(routes.Tasks.details(id))
+      }
+    )
+  }
 
   def details(id : Long) = Action {
     var task = Task.find(id)
-    if(task == null) {
-      Ok(Json.toJson(task))
-    } else {
+    if(task.isEmpty) {
       NotFound(Json.obj())
+    } else {
+      Ok(Json.toJson(task))
     }
   }
 

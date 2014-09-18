@@ -26,13 +26,16 @@ object Task {
     SQL("select * from task").as(task *)
   }
 
-  def create(label: String) {
+  def create(label: String) : Long =  {
     DB.withConnection { implicit c =>
       SQL("insert into task (label) values ({label})").on(
         'label -> label
-      ).executeUpdate()
-    }
+      ).executeInsert()
+    } match {
+        case Some(long) => long // The Primary Key
+      }
   }
+
   def find(id: Long) : Option[Task] = DB.withConnection { implicit c =>
     SQL("select * from task where id = {id}").on(
       'id -> id
