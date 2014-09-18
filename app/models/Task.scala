@@ -9,6 +9,12 @@ case class Task(id: Long, label: String)
 
 object Task {
 
+  val parser : RowParser[Task] = {
+    get[Long]("task.id") ~
+    get[String]("task.label") map {
+      case id~label => Task(id, label)
+    }
+  }
   val task = {
     get[Long]("id") ~ 
     get[String]("label") map {
@@ -27,7 +33,12 @@ object Task {
       ).executeUpdate()
     }
   }
-
+  def find(id: Long) : Option[Task] = DB.withConnection { implicit c =>
+    SQL("select * from task where id = {id}").on(
+      'id -> id
+    ).as(parser.singleOpt)
+  }
+  
   def delete(id: Long) {
     DB.withConnection { implicit c =>
       SQL("delete from task where id = {id}").on(

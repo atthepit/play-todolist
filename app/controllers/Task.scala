@@ -9,14 +9,21 @@ import play.api.libs.json._
 import models.Task
 
 object Tasks extends Controller {
-  
+
   def index = Action {
     Ok(Json.toJson(Task.all()))
   }
 
   def newTask = TODO
 
-  def details(id : Long) = TODO
+  def details(id : Long) = Action {
+    var task = Task.find(id)
+    if(task == null) {
+      Ok(Json.toJson(task))
+    } else {
+      NotFound(Json.obj())
+    }
+  }
 
   def delete(id : Long) = TODO
 
