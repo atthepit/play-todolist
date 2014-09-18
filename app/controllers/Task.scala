@@ -39,6 +39,13 @@ object Tasks extends Controller {
     }
   }
 
-  def delete(id : Long) = TODO
+  def delete(id : Long) = Action {
+    try { 
+      Task.delete(id)
+      NoContent
+    } catch {
+      case e: Exception => InternalServerError
+    }
+  }
 
 }
