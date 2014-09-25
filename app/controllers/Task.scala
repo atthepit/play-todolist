@@ -11,7 +11,10 @@ import models.Task
 object Tasks extends Controller {
 
   val taskForm = Form(
-    "label" -> nonEmptyText
+    tuple(
+      "label" -> nonEmptyText,
+      "user"  -> nonEmptyText
+    )
   )
 
   def index = Action {
@@ -23,9 +26,16 @@ object Tasks extends Controller {
       formWithErrors => {
         BadRequest(formWithErrors.errorsAsJson)
       },
-      label => {
-        val id = Task.create(label)
-        Redirect(routes.Tasks.details(id))
+      task => {
+        val label = task._1
+        val user = task._2
+        try { 
+          val id = Task.create(label, user)
+          val task = Task.find(id)
+          Created(Json.toJson(task)).withHeaders(LOCATION -> routes.Tasks.details(id).url)
+        } catch {
+          case e: Exception => NotFound(Json.toJson(user))
+        }
       }
     )
   }

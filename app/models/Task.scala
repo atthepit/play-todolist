@@ -5,20 +5,22 @@ import play.api.db._
 import play.api.Play.current
 import play.api.libs.json._
 
-case class Task(id: Long, label: String)
+case class Task(id: Long, label: String, user: String)
 
 object Task {
 
   val parser : RowParser[Task] = {
     get[Long]("task.id") ~
-    get[String]("task.label") map {
-      case id~label => Task(id, label)
+    get[String]("task.label") ~
+    get[String]("task.user") map {
+      case id~label~user => Task(id, label, user)
     }
   }
   val task = {
     get[Long]("id") ~ 
-    get[String]("label") map {
-      case id~label => Task(id, label)
+    get[String]("label") ~
+    get[String]("user") map {
+      case id~label~user => Task(id, label, user)
     }
   }
 
@@ -26,10 +28,11 @@ object Task {
     SQL("select * from task").as(task *)
   }
 
-  def create(label: String) : Long =  {
+  def create(label: String, user: String) : Long =  {
     DB.withConnection { implicit c =>
-      SQL("insert into task (label) values ({label})").on(
-        'label -> label
+      SQL("insert into task (label, user) values ({label}, {user})").on(
+        'label -> label,
+        'user  -> user
       ).executeInsert()
     } match {
         case Some(long) => long // The Primary Key
@@ -53,7 +56,8 @@ object Task {
   implicit val taskWrites = new Writes[Task] {
     def writes(task : Task) = Json.obj(
       "id" -> task.id,
-      "label" -> task.label
+      "label" -> task.label,
+      "user" -> task.user
     )
   }
 }
