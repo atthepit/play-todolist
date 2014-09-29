@@ -54,11 +54,11 @@ object Tasks extends Controller {
   }
 
   def delete(id : Long) = Action {
-    try { 
+    if(Task.exists(id)){
       Task.delete(id)
       NoContent
-    } catch {
-      case e: Exception => InternalServerError
+    } else {
+      NotFound(Json.obj())
     }
   }
 
