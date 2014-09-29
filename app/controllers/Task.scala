@@ -7,6 +7,7 @@ import play.api.data.Forms._
 import play.api.libs.json._
 
 import models.Task
+import models.User
 
 object Tasks extends Controller {
 
@@ -18,14 +19,27 @@ object Tasks extends Controller {
     Ok(Json.toJson(Task.all()))
   }
 
-  def create = Action { implicit request => 
+  def userTasks(user: String) = Action {
+    if(User.exists(user)) {
+      Ok(Json.toJson(Task.findByUser(user)))
+    } else {
+      NotFound(Json.toJson(user))
+    }
+  }
+
+  def create(user: String) = Action { implicit request => 
     taskForm.bindFromRequest.fold(
       formWithErrors => {
         BadRequest(formWithErrors.errorsAsJson)
       },
       label => {
-        val id = Task.create(label)
-        Redirect(routes.Tasks.details(id))
+        try { 
+          val id = Task.create(label, user)
+          val task = Task.find(id)
+          Created(Json.toJson(task)).withHeaders(LOCATION -> routes.Tasks.details(id).url)
+        } catch {
+          case e: Exception => NotFound(Json.toJson(user))
+        }
       }
     )
   }
