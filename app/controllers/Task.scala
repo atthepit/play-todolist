@@ -7,28 +7,32 @@ import play.api.data.Forms._
 import play.api.libs.json._
 
 import models.Task
+import models.User
 
 object Tasks extends Controller {
 
   val taskForm = Form(
-    tuple(
-      "label" -> nonEmptyText,
-      "user"  -> nonEmptyText
-    )
+    "label" -> nonEmptyText
   )
 
   def index = Action {
     Ok(Json.toJson(Task.all()))
   }
 
-  def create = Action { implicit request => 
+  def userTasks(user: String) = Action {
+    if(User.exists(user)) {
+      Ok(Json.toJson(Task.findByUser(user)))
+    } else {
+      NotFound(Json.toJson(user))
+    }
+  }
+
+  def create(user: String) = Action { implicit request => 
     taskForm.bindFromRequest.fold(
       formWithErrors => {
         BadRequest(formWithErrors.errorsAsJson)
       },
-      task => {
-        val label = task._1
-        val user = task._2
+      label => {
         try { 
           val id = Task.create(label, user)
           val task = Task.find(id)

@@ -53,6 +53,11 @@ object Task {
     }
   }
 
+  def findByUser(user: String) : List[Task] = DB.withConnection { 
+    implicit c =>
+    SQL("select * from task where user = {user}").on('user -> user).as(task *)
+  }
+
   implicit val taskWrites = new Writes[Task] {
     def writes(task : Task) = Json.obj(
       "id" -> task.id,
