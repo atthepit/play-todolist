@@ -58,6 +58,10 @@ object Task {
     SQL("select * from task where user = {user}").on('user -> user).as(task *)
   }
 
+  def exists(id: Long) : Boolean = {
+    return !Task.find(id).isEmpty
+  }
+
   implicit val taskWrites = new Writes[Task] {
     def writes(task : Task) = Json.obj(
       "id" -> task.id,
