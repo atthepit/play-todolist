@@ -1,26 +1,32 @@
 package models
+
 import anorm._
 import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
 import play.api.libs.json._
 
-case class Task(id: Long, label: String, user: String)
+import java.util.{Date}
+
+case class Task(id: Long, label: String, user: String, dueTo: Option[Date])
 
 object Task {
 
   val parser : RowParser[Task] = {
     get[Long]("task.id") ~
     get[String]("task.label") ~
-    get[String]("task.user_login") map {
-      case id~label~user => Task(id, label, user)
+    get[String]("task.user_login") ~
+    get[Option[Date]]("task.due_to") map {
+      case id~label~user~dueTo => Task(id, label, user, dueTo)
     }
   }
+
   val task = {
     get[Long]("id") ~ 
     get[String]("label") ~
-    get[String]("user_login") map {
-      case id~label~user => Task(id, label, user)
+    get[String]("user_login") ~
+    get[Option[Date]]("task.due_to") map {
+      case id~label~user~dueTo => Task(id, label, user, dueTo)
     }
   }
 
@@ -28,11 +34,12 @@ object Task {
     SQL("select * from task").as(task *)
   }
 
-  def create(label: String, user: String) : Long =  {
+  def create(label: String, user: String, dueTo: Option[Date]) : Long =  {
     DB.withConnection { implicit c =>
-      SQL("insert into task (label, user_login) values ({label}, {user})").on(
+      SQL("insert into task (label, user_login, due_to) values ({label}, {user}, {dueTo})").on(
         'label -> label,
-        'user  -> user
+        'user  -> user,
+        'dueTo -> dueTo
       ).executeInsert()
     } match {
         case Some(long) => long // The Primary Key

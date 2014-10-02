@@ -35,7 +35,7 @@ object Tasks extends Controller {
       label => {
         try { 
           if(User.exists(user)) {
-            val id = Task.create(label, user)
+            val id = Task.create(label, user, None)
             val task = Task.find(id)
             Created(Json.toJson(task)).withHeaders(LOCATION -> routes.Tasks.details(id).url)
           } else {
