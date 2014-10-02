@@ -62,18 +62,35 @@ object Task {
 
   def findByUser(user: String) : List[Task] = DB.withConnection { 
     implicit c =>
-    SQL("select * from task where user_login = {user}").on('user -> user).as(task *)
+      SQL("select * from task where user_login = {user}").on('user -> user).as(task *)
   }
 
   def exists(id: Long) : Boolean = {
     return !Task.find(id).isEmpty
   }
 
+  def expired(user: Option[String]) : List[Task] = DB.withConnection {
+    var today = new Date()
+    implicit c =>
+      SQL("select * from task where user_login = {user} and due_to < {today}").on(
+        'user -> user,
+        'today -> today
+      ).as(task *)
+  }
+
   implicit val taskWrites = new Writes[Task] {
-    def writes(task : Task) = Json.obj(
-      "id" -> task.id,
-      "label" -> task.label,
-      "user" -> task.user
-    )
+    def writes(task : Task) : JsValue = {
+      var json = Json.obj(
+        "id" -> task.id,
+        "label" -> task.label,
+        "user" -> task.user
+      )
+
+      if(!task.dueTo.isEmpty) {
+        json = json ++ Json.obj("due_to" -> task.dueTo.get.toString)
+      }
+
+      return json
+    }
   }
 }

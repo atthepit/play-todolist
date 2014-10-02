@@ -9,10 +9,15 @@ import play.api.libs.json._
 import models.Task
 import models.User
 
+import java.util.{Date}
+
 object Tasks extends Controller {
 
   val taskForm = Form(
-    "label" -> nonEmptyText
+    tuple(
+      "label" -> nonEmptyText,
+      "dueTo" -> optional(date)
+    )
   )
 
   def index = Action {
@@ -32,10 +37,14 @@ object Tasks extends Controller {
       formWithErrors => {
         BadRequest(formWithErrors.errorsAsJson)
       },
-      label => {
+      taskForm => {
         try { 
           if(User.exists(user)) {
-            val id = Task.create(label, user, None)
+            var label : String = taskForm._1
+            var dueTo : Option[Date] = taskForm._2
+            var date = new Date()
+            Console.println(date)
+            val id = Task.create(label, user, dueTo)
             val task = Task.find(id)
             Created(Json.toJson(task)).withHeaders(LOCATION -> routes.Tasks.details(id).url)
           } else {
@@ -63,6 +72,14 @@ object Tasks extends Controller {
       NoContent
     } else {
       NotFound(Json.obj())
+    }
+  }
+
+  def expired(user: String) = Action {
+    if(User.exists(user)){
+      Ok(Json.toJson(Task.expired(Some(user))))
+    } else {
+      NotFound(Json.toJson(user))
     }
   }
 
