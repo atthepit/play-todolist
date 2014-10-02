@@ -12,14 +12,14 @@ object Task {
   val parser : RowParser[Task] = {
     get[Long]("task.id") ~
     get[String]("task.label") ~
-    get[String]("task.user") map {
+    get[String]("task.user_login") map {
       case id~label~user => Task(id, label, user)
     }
   }
   val task = {
     get[Long]("id") ~ 
     get[String]("label") ~
-    get[String]("user") map {
+    get[String]("user_login") map {
       case id~label~user => Task(id, label, user)
     }
   }
@@ -30,7 +30,7 @@ object Task {
 
   def create(label: String, user: String) : Long =  {
     DB.withConnection { implicit c =>
-      SQL("insert into task (label, user) values ({label}, {user})").on(
+      SQL("insert into task (label, user_login) values ({label}, {user})").on(
         'label -> label,
         'user  -> user
       ).executeInsert()
@@ -55,7 +55,7 @@ object Task {
 
   def findByUser(user: String) : List[Task] = DB.withConnection { 
     implicit c =>
-    SQL("select * from task where user = {user}").on('user -> user).as(task *)
+    SQL("select * from task where user_login = {user}").on('user -> user).as(task *)
   }
 
   def exists(id: Long) : Boolean = {

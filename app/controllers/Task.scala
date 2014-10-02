@@ -34,11 +34,15 @@ object Tasks extends Controller {
       },
       label => {
         try { 
-          val id = Task.create(label, user)
-          val task = Task.find(id)
-          Created(Json.toJson(task)).withHeaders(LOCATION -> routes.Tasks.details(id).url)
+          if(User.exists(user)) {
+            val id = Task.create(label, user)
+            val task = Task.find(id)
+            Created(Json.toJson(task)).withHeaders(LOCATION -> routes.Tasks.details(id).url)
+          } else {
+            NotFound(Json.toJson(user))
+          }
         } catch {
-          case e: Exception => NotFound(Json.toJson(user))
+          case e: Exception => InternalServerError(Json.toJson(e.getMessage()))
         }
       }
     )

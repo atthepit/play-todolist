@@ -26,9 +26,6 @@ object User {
   }
 
   def exists(login: String) : Boolean = {
-    val user = User.find(login)
-    Console.println(user)
-    Console.println(user.isEmpty)
     return !User.find(login).isEmpty
   }
 }
