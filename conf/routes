@@ -6,12 +6,12 @@
 GET     /               controllers.Application.index
 
 # Tasks
-GET /tasks controllers.Tasks.index
-GET /:user/tasks controllers.Tasks.userTasks(user: String)
-GET /tasks/:id controllers.Tasks.details(id: Long)
-POST /tasks controllers.Tasks.create(user: String = "anonymous")
-POST /:user/tasks controllers.Tasks.create(user: String)
-DELETE /tasks/:id controllers.Tasks.delete(id: Long)
+GET     /tasks controllers.Tasks.index
+GET     /:user/tasks controllers.Tasks.userTasks(user: String)
+GET     /tasks/:id controllers.Tasks.details(id: Long)
+POST    /tasks controllers.Tasks.create(user: String = "anonymous")
+POST    /:user/tasks controllers.Tasks.create(user: String)
+DELETE  /tasks/:id controllers.Tasks.delete(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
