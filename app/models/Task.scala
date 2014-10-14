@@ -71,11 +71,54 @@ object Task {
 
   def expired(user: Option[String]) : List[Task] = DB.withConnection {
     var today = new Date()
+
     implicit c =>
       SQL("select * from task where user_login = {user} and due_to < {today}").on(
         'user -> user,
         'today -> today
       ).as(task *)
+  }
+  def expiresInYear(year: Int) : List[Task] = DB.withConnection {
+    var minDate = new Date(year + "/" + 1 + "/" + 1);
+    var maxDate = new Date(year + "/" + 12 + "/" + 31);
+
+    implicit c =>
+      SQL("select * from task where due_to > {minDate} and due_to < {maxDate}").on(
+        'minDate -> minDate,
+        'maxDate -> maxDate
+      ).as(task *)
+  }
+
+  def expiresInMonth(year: Int, month: Int) : List[Task] = DB.withConnection {
+    var minDate = new Date(year + "/" + month + "/" + 1);
+    var maxDate = new Date(year + "/" + month + "/" + getMaxDayOfMonth(month));
+
+    implicit c =>
+      SQL("select * from task where due_to > {minDate} and due_to < {maxDate}").on(
+        'minDate -> minDate,
+        'maxDate -> maxDate
+      ).as(task *)
+  }
+
+  def expiresInDay(year: Int, month: Int, day: Int) : List[Task] = DB.withConnection {
+    var max = getMaxDayOfMonth(month)
+    if(day < max) { max = day }
+    var date : Date = new Date(year + "/" + month + "/" + max)
+    
+    implicit c =>
+      SQL("select * from task where due_to = {date}").on(
+        'date -> date
+      ).as(task *)
+  }
+
+  private def getMaxDayOfMonth(month: Int) : Int = {
+    if(month == 4 || month == 6 || month == 9 || month == 11) {
+      return 30
+    } else if(month == 2){
+      return 28
+    } else {
+      return 31
+    }
   }
 
   implicit val taskWrites = new Writes[Task] {

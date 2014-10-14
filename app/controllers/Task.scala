@@ -83,4 +83,15 @@ object Tasks extends Controller {
     }
   }
 
+  def expiresInYear(year: Int) = Action {
+    Ok(Json.toJson(Task.expiresInYear(year)))
+  }
+
+  def expiresInMonth(year: Int, month: Int) = Action {
+    Ok(Json.toJson(Task.expiresInMonth(year, month)))
+  }
+
+  def expiresInDay(year: Int, month: Int, day: Int) = Action {
+    Ok(Json.toJson(Task.expiresInDay(year, month, day)))
+  }
 }
