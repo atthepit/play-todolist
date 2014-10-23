@@ -26,9 +26,9 @@ object Tasks extends Controller {
 
   def userTasks(user: String) = Action {
     if(User.exists(user)) {
-      Ok(Json.toJson(Task.findByUser(user)))
+      Ok(Json.toJson(Task.all(user)))
     } else {
-      NotFound(Json.toJson(user))
+      NotFound
     }
   }
 
@@ -46,7 +46,7 @@ object Tasks extends Controller {
             val task = Task.find(id)
             Created(Json.toJson(task)).withHeaders(LOCATION -> routes.Tasks.details(id).url)
           } else {
-            NotFound(Json.toJson(user))
+            NotFound
           }
         } catch {
           case e: Exception => InternalServerError(Json.toJson(e.getMessage()))
@@ -58,18 +58,17 @@ object Tasks extends Controller {
   def details(id : Long) = Action {
     var task = Task.find(id)
     if(task.isEmpty) {
-      NotFound(Json.obj())
+      NotFound
     } else {
       Ok(Json.toJson(task))
     }
   }
 
   def delete(id : Long) = Action {
-    if(Task.exists(id)){
-      Task.delete(id)
+    if(Task.delete(id)){
       NoContent
     } else {
-      NotFound(Json.obj())
+      NotFound
     }
   }
 
@@ -77,7 +76,7 @@ object Tasks extends Controller {
     if(User.exists(user)){
       Ok(Json.toJson(Task.expired(Some(user))))
     } else {
-      NotFound(Json.toJson(user))
+      NotFound
     }
   }
 

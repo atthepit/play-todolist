@@ -11,8 +11,8 @@ case class User(login: String)
 
 object User {
 
-  val parser : RowParser[User] = {
-    get[String]("task_user.login") map {
+  val user = {
+    get[String]("login") map {
       case login => User(login)
     }
   }
@@ -21,7 +21,7 @@ object User {
     DB.withConnection { implicit c =>
       SQL("select * from task_user where login = {login}").on(
         'login -> login
-      ).as(parser.singleOpt)
+      ).as(User.user.singleOpt)
     }
   }
 
