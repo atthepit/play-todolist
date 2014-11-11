@@ -33,7 +33,7 @@ object Task {
     ).as(task *)
   }
 
-  def create(label: String, user: String, dueTo: Option[Date] = None) : Long =  {
+  def create(label: String, user: String = "anonymous", dueTo: Option[Date] = None) : Long =  {
     DB.withConnection { implicit c =>
       val id: Option[Long]  = 
         SQL("insert into task (label, user_login, due_to) values ({label}, {user}, {dueTo})").on(
@@ -57,17 +57,11 @@ object Task {
       var deleted = SQL("delete from task where id = {id}").on(
         'id -> id
       ).executeUpdate()
-      deleted match {
-        case 1 => true
-        case _ => false
-      }
+      return deleted == 1
     }    
   }
 
-  def findByUser(user: String) : List[Task] = DB.withConnection { 
-    implicit c =>
-      SQL("select * from task where user_login = {user}").on('user -> user).as(task *)
-  }
+  def findByUser(user: String) : List[Task] = all(user)
 
   def exists(id: Long) : Boolean = {
     return !Task.find(id).isEmpty
@@ -76,15 +70,22 @@ object Task {
   def expired(user: Option[String]) : List[Task] = DB.withConnection {
     var today = formatter.format(new Date())
 
-    implicit c =>
-      SQL("select * from task where user_login = {user} and due_to < {today}").on(
-        'user -> user,
-        'today -> today
-      ).as(task *)
+    if(user.isEmpty){
+      implicit c =>
+        SQL("select * from task where due_to < {today}").on(
+          'today -> today
+        ).as(task *)
+    } else {
+      implicit c =>
+        SQL("select * from task where user_login = {user} and due_to < {today}").on(
+          'user -> user,
+          'today -> today
+        ).as(task *)
+    }
   }
   def expiresInYear(year: Int) : List[Task] = DB.withConnection {
-    var minDate = formatter.parse(year + "/" + 1 + "/" + 1);
-    var maxDate = formatter.parse(year + "/" + 12 + "/" + 31);
+    var minDate = formatter.parse(year + "-" + 1 + "-" + 1);
+    var maxDate = formatter.parse(year + "-" + 12 + "-" + 31);
 
     implicit c =>
       SQL("select * from task where due_to > {minDate} and due_to < {maxDate}").on(
@@ -94,8 +95,8 @@ object Task {
   }
 
   def expiresInMonth(year: Int, month: Int) : List[Task] = DB.withConnection {
-    var minDate = formatter.parse(year + "/" + month + "/" + 1);
-    var maxDate = formatter.parse(year + "/" + month + "/" + getMaxDayOfMonth(month));
+    var minDate = formatter.parse(year + "-" + month + "-" + 1);
+    var maxDate = formatter.parse(year + "-" + month + "-" + getMaxDayOfMonth(month));
 
     implicit c =>
       SQL("select * from task where due_to > {minDate} and due_to < {maxDate}").on(
@@ -111,6 +112,27 @@ object Task {
       SQL("select * from task where due_to = {date}").on(
         'date -> date
       ).as(task *)
+  }
+
+  def save(task: Task) : Task = {
+    if(Task.exists(task.id)) {
+      Task.update(task)
+      return task
+    } else {
+      var id = Task.create(task.label, task.user, task.dueTo)
+      Task.find(id).getOrElse(task)
+    }
+  }
+
+  def update(task: Task) : Boolean = DB.withConnection { implicit c =>
+    var updated = SQL("update task set label={label}, user_login={user}, due_to={dueTo} where id={id}").on(
+      'label -> task.label,
+      'user  -> task.user,
+      'dueTo -> task.dueTo,
+      'id -> task.id
+    ).executeUpdate()
+
+    return updated == 1
   }
 
   private def getMaxDayOfMonth(month: Int) : Int = {

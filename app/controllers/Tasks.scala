@@ -64,6 +64,27 @@ object Tasks extends Controller {
     }
   }
 
+  def update(id: Long) = Action { implicit request => 
+    taskForm.bindFromRequest.fold (
+      formWithErrors => BadRequest( formWithErrors.errorsAsJson ),
+      taskForm => {
+        var task : Option[Task] = Task.find(id)
+        if(task.isEmpty) {
+          NotFound
+        } else {
+          var label : String = taskForm._1
+          var dueTo : Option[Date] = if (taskForm._2.isEmpty) task.get.dueTo; else taskForm._2;
+          try { 
+            Task.save(new Task(task.get.id, label, task.get.user, dueTo))
+            Ok
+          } catch {
+            case e: Exception => InternalServerError
+          }
+        }
+      }
+    )
+  }
+
   def delete(id : Long) = Action {
     if(Task.delete(id)){
       NoContent

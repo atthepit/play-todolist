@@ -7,15 +7,25 @@ GET     /                                 controllers.Application.index
 
 # Tasks
 GET     /tasks                            controllers.Tasks.index
-GET     /:user/tasks                      controllers.Tasks.userTasks(user: String)
 GET     /tasks/:id                        controllers.Tasks.details(id: Long)
-GET     /:user/tasks/expired              controllers.Tasks.expired(user: String)
 GET     /tasks/expires/:year              controllers.Tasks.expiresInYear(year: Int)
 GET     /tasks/expires/:year/:month       controllers.Tasks.expiresInMonth(year: Int, month: Int)
 GET     /tasks/expires/:year/:month/:day  controllers.Tasks.expiresInDay(year: Int, month: Int, day: Int)
 POST    /tasks                            controllers.Tasks.create(user: String = "anonymous")
-POST    /:user/tasks                      controllers.Tasks.create(user: String)
+PUT     /tasks/:id                        controllers.Tasks.update(id: Long)
 DELETE  /tasks/:id                        controllers.Tasks.delete(id: Long)
 
+# Users
+GET     /:user/tasks                      controllers.Users.tasks(user: String)
+GET     /:user/tasks/expired              controllers.Tasks.expired(user: String)
+POST    /:user/tasks                      controllers.Tasks.create(user: String)
+# POST    /:user/categories
+
+# GET     /:user/categories
+# GET     /:user/categories/:id/tasks
+
+# POST    /:user/categories/:id/tasks
+# PUT     /:user/categories/:id
+# DELETE  /:user/categories/:id
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                     controllers.Assets.at(path="/public", file)
