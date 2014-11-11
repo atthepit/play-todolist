@@ -137,14 +137,14 @@ class TaskSpec() extends Specification {
     "return all tasks that expire on a certain month" in new WithApplication(fakeApp) {
       setUp()
 
-      val tasksExpiredLastMonth = tasks.filter( 
+      val tasksExpiringThisMonth = tasks.filter( 
         t => 
           !t.dueTo.isEmpty && 
-          Task.formatter.format(t.dueTo.get).split("-")(1).toInt == thisYear && 
-          Task.formatter.format(t.dueTo.get).split("-")(0).toInt == thisMonth
+          Task.formatter.format(t.dueTo.get).split("-")(1).toInt == thisMonth && 
+          Task.formatter.format(t.dueTo.get).split("-")(0).toInt == thisYear
       ).length
 
-      Task.expiresInMonth(thisYear, thisMonth).length mustEqual tasksExpiredLastMonth
+      Task.expiresInMonth(thisYear, thisMonth).length mustEqual tasksExpiringThisMonth
     }
 
     "return all tasks that expire on a certain day" in new WithApplication(fakeApp) {
