@@ -134,7 +134,26 @@ class UsersSpec() extends Specification with JsonMatchers{
       resultString must /("id" -> id)
       resultString must /("label" -> pedroTask.label)
       resultString must /("user" -> pedroTask.user)
-      resultString must /("category" -> category)      
+      resultString must /("category" -> category)
+    }
+
+    "be able of retrieving all tasks in a category" in new WithApplication(fakeApp) {
+      var user : String = "pedro"; var category : Long = 1;
+      Task.create("HelloWorld", "pedro", None, Some(category))
+      var result = controllers.Categories.tasks(category)(FakeRequest())
+
+      status(result) mustEqual 200
+      contentType(result) must beSome.which(_ == "application/json")
+      var jsonArray = contentAsJson(result).as[JsArray].value
+      jsonArray.size mustEqual 1
+
+      Task.create("holaMundo", "pedro", None, Some(category))
+      result = controllers.Categories.tasks(category)(FakeRequest())
+
+      status(result) mustEqual 200
+      contentType(result) must beSome.which(_ == "application/json")
+      jsonArray = contentAsJson(result).as[JsArray].value
+      jsonArray.size mustEqual 2
     }
   }
 }

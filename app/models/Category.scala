@@ -18,4 +18,12 @@ object Category {
       id.getOrElse(-1)
     }
   }
+
+  def tasks(category: Long) : List[Task] = {
+    DB.withConnection { implicit conn =>
+      SQL("select * from task where category = {category}").on(
+        'category -> category
+      ).as(Task.task *)
+    }
+  }
 }

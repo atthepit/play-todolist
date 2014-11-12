@@ -19,6 +19,7 @@ import play.api.cache._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import models.Category
+import models.Task
 
 
 object Categories extends Controller {
@@ -35,6 +36,10 @@ object Categories extends Controller {
           Created(Json.toJson(new Category(id, name, user))).withHeaders(LOCATION -> ("/" + user + "/categories/" + id))
       }
     )  
+  }
+
+  def tasks(category: Long) = Action {
+    Ok(Json.toJson(Category.tasks(category)))
   }
 
   implicit val categoryWrites : Writes[Category] = ( 

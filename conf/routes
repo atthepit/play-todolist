@@ -22,9 +22,9 @@ POST    /:user/tasks                      controllers.Tasks.create(user: String,
 POST    /:user/categories                 controllers.Categories.create(user: String)
 
 # GET     /:user/categories
-# GET     /:user/categories/:id/tasks
+GET     /categories/:id/tasks       controllers.Categories.tasks(id: Long)
 
-# POST    /:user/categories/:id/tasks
+POST    /:user/categories/:id/tasks controllers.Tasks.create(user: String, id: Long)
 # PUT     /:user/categories/:id
 # DELETE  /:user/categories/:id
 # Map static resources from the /public folder to the /assets URL path
