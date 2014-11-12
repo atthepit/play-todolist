@@ -10,7 +10,7 @@ import play.api.libs.functional.syntax._
 import java.util.{Date}
 import java.text.SimpleDateFormat
 
-case class Task(id: Long, label: String, user: String, dueTo: Option[Date] = None)
+case class Task(id: Long, label: String, user: String, dueTo: Option[Date] = None, category: Option[Long] = None)
 
 object Task {
 
@@ -18,8 +18,9 @@ object Task {
     get[Long]("id") ~ 
     get[String]("label") ~
     get[String]("user_login") ~
-    get[Option[Date]]("task.due_to") map {
-      case id~label~user~dueTo => Task(id, label, user, dueTo)
+    get[Option[Date]]("task.due_to") ~
+    get[Option[Long]]("task.category") map {
+      case id~label~user~dueTo~category => Task(id, label, user, dueTo, category)
     }
   }
 
@@ -33,13 +34,14 @@ object Task {
     ).as(task *)
   }
 
-  def create(label: String, user: String = "anonymous", dueTo: Option[Date] = None) : Long =  {
+  def create(label: String, user: String = "anonymous", dueTo: Option[Date] = None, category: Option[Long] = None) : Long =  {
     DB.withConnection { implicit c =>
       val id: Option[Long]  = 
-        SQL("insert into task (label, user_login, due_to) values ({label}, {user}, {dueTo})").on(
+        SQL("insert into task (label, user_login, due_to, category) values ({label}, {user}, {dueTo}, {category})").on(
           'label -> label,
           'user  -> user,
-          'dueTo -> dueTo
+          'dueTo -> dueTo,
+          'category -> category
         ).executeInsert()
         
       id.getOrElse(-1)
@@ -125,10 +127,11 @@ object Task {
   }
 
   def update(task: Task) : Boolean = DB.withConnection { implicit c =>
-    var updated = SQL("update task set label={label}, user_login={user}, due_to={dueTo} where id={id}").on(
+    var updated = SQL("update task set label={label}, user_login={user}, due_to={dueTo}, category={category} where id={id}").on(
       'label -> task.label,
       'user  -> task.user,
       'dueTo -> task.dueTo,
+      'category -> task.category,
       'id -> task.id
     ).executeUpdate()
 
@@ -151,7 +154,8 @@ object Task {
     (JsPath \ "id").write[Long] and
     (JsPath \ "label").write[String] and
     (JsPath \ "user").write[String] and
-    (JsPath \ "due_to").writeNullable[Date](dateWrite)
+    (JsPath \ "due_to").writeNullable[Date](dateWrite) and
+    (JsPath \ "category").writeNullable[Long]
   )(unlift(Task.unapply))
 
 }

@@ -172,4 +172,12 @@ class TaskSpec() extends Specification {
       Task.delete(-1) must beFalse
     }
   }
+
+  /*"A task"  should {
+    "be editable" in new WithApplication(fakeApp) {
+      setUp()
+      newTask = Task.update(anonymousTask.id, "Hello world", anonymousTask.user, anonymousTask.dueTo);
+      newTask.label mustEqual "Hello world"
+    }
+  }*/
 }

@@ -5,19 +5,22 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 import models.Task
 import models.User
 
 import java.util.{Date}
+case class TaskData(label: String, dueTo: Option[Date] = None, category: Option[Long] = None)
 
 object Tasks extends Controller {
 
   val taskForm = Form(
-    tuple(
+    mapping(
       "label" -> nonEmptyText,
-      "dueTo" -> optional(date)
-    )
+      "dueTo" -> optional(date),
+      "category" -> optional(longNumber)
+    )(TaskData.apply)(TaskData.unapply)
   )
 
   def index = Action {
@@ -32,17 +35,16 @@ object Tasks extends Controller {
     }
   }
 
-  def create(user: String) = Action { implicit request => 
+  def create(user: String, category: Long = -1) = Action { implicit request => 
     taskForm.bindFromRequest.fold(
-      formWithErrors => {
-        BadRequest(formWithErrors.errorsAsJson)
-      },
+      formWithErrors => BadRequest(formWithErrors.errorsAsJson),
       taskForm => {
         try { 
           if(User.exists(user)) {
-            var label : String = taskForm._1
-            var dueTo : Option[Date] = taskForm._2
-            val id = Task.create(label, user, dueTo)
+            var label : String = taskForm.label
+            var dueTo : Option[Date] = taskForm.dueTo
+            val categoryId : Option[Long] = if(category == -1) { taskForm.category } else { Some(category) }
+            val id = Task.create(label, user, dueTo, categoryId)
             val task = Task.find(id)
             Created(Json.toJson(task)).withHeaders(LOCATION -> routes.Tasks.details(id).url)
           } else {
@@ -62,6 +64,27 @@ object Tasks extends Controller {
     } else {
       Ok(Json.toJson(task))
     }
+  }
+
+  def update(id: Long) = Action { implicit request => 
+    taskForm.bindFromRequest.fold (
+      formWithErrors => BadRequest( formWithErrors.errorsAsJson ),
+      taskForm => {
+        var task : Option[Task] = Task.find(id)
+        if(task.isEmpty) {
+          NotFound
+        } else {
+          var label : String = taskForm.label
+          var dueTo : Option[Date] = if (taskForm.dueTo.isEmpty) task.get.dueTo; else taskForm.dueTo;
+          var category : Option[Long] = if (taskForm.category.isEmpty) task.get.category; else taskForm.category
+          try { 
+            Ok(Json.toJson(Task.save(new Task(task.get.id, label, task.get.user, dueTo, category))))
+          } catch {
+            case e: Exception => InternalServerError
+          }
+        }
+      }
+    )
   }
 
   def delete(id : Long) = Action {
