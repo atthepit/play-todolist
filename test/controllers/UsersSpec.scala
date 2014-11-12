@@ -1,15 +1,15 @@
+import play.api.test._
+import play.api.test.Helpers._
+import play.api.libs.json._
+ 
 import org.specs2.mutable._
 import org.specs2.runner._
 import org.specs2.matcher._
-import org.junit.runner._
 
-import play.api.test._
-import play.api.test.Helpers._
 import java.util.{Date}
 import java.text.SimpleDateFormat
-import play.api.libs.json._
 
-class UsersSpec() extends Specification {
+class UsersSpec() extends Specification with JsonMatchers{
   import models.Task
   def fakeApp = FakeApplication(additionalConfiguration = inMemoryDatabase())
 
@@ -38,6 +38,15 @@ class UsersSpec() extends Specification {
 
   var tasks : List[Task] = List()
 
+  def checkCreatedCategory(id: Long, name: String, user: String, result: scala.concurrent.Future[play.api.mvc.Result]) = {
+    status(result) mustEqual 201
+    contentType(result) must beSome.which(_ == "application/json")
+    val resultJson: JsValue = contentAsJson(result)
+    val resultString = Json.stringify(resultJson) 
+    resultString must /("id" -> id)
+    resultString must /("name" -> name)
+    resultString must /("user" -> user)
+  }
   def setUp() = {
     anonymousTask = Task.save(anonymousTask)
     pedroTask = Task.save(pedroTask)
@@ -74,13 +83,17 @@ class UsersSpec() extends Specification {
     }
     "be able of creating new categories" in new WithApplication(fakeApp) {
       setUp()
-      val result = controllers.Categories.create("pedro")(
-        FakeRequest().withFormUrlEncodedBody("name" -> "HelloWorld")
+      var user = "pedro"; var name = "HelloWorld"; var id = 2
+      var result = controllers.Categories.create(user)(
+        FakeRequest().withFormUrlEncodedBody("name" -> name)
       )
+      checkCreatedCategory(id, name, user, result)
 
-      status(result) mustEqual 201
-      contentType(result) must beSome.which(_ == "application/json")
-      contentAsString(result) must contain("HelloWorld")
+      user = "sergio"; name = "holaMundo"; id = 3
+      result = controllers.Categories.create(user)(
+        FakeRequest().withFormUrlEncodedBody("name" -> name)
+      )
+      checkCreatedCategory(id, name, user, result)
     }
   }
 }

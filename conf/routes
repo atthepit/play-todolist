@@ -19,7 +19,7 @@ DELETE  /tasks/:id                        controllers.Tasks.delete(id: Long)
 GET     /:user/tasks                      controllers.Users.tasks(user: String)
 GET     /:user/tasks/expired              controllers.Tasks.expired(user: String)
 POST    /:user/tasks                      controllers.Tasks.create(user: String)
-# POST    /:user/categories
+POST    /:user/categories                 controllers.Categories.create(user: String)
 
 # GET     /:user/categories
 # GET     /:user/categories/:id/tasks
