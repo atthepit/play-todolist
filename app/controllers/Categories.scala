@@ -32,7 +32,7 @@ object Categories extends Controller {
       formWithErrors => BadRequest( "You need to pass a 'xxx' value!" ),
       name => {
           val id : Long = Category.create(name, user)
-          Created(Json.toJson(new Category(id, name, user)))
+          Created(Json.toJson(new Category(id, name, user))).withHeaders(LOCATION -> ("/" + user + "/categories/" + id))
       }
     )  
   }

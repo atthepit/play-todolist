@@ -41,6 +41,7 @@ class UsersSpec() extends Specification with JsonMatchers{
   def checkCreatedCategory(id: Long, name: String, user: String, result: scala.concurrent.Future[play.api.mvc.Result]) = {
     status(result) mustEqual 201
     contentType(result) must beSome.which(_ == "application/json")
+    header(LOCATION, result) must beSome.which(_ == "/" + user + "/categories/" + id)
     val resultJson: JsValue = contentAsJson(result)
     val resultString = Json.stringify(resultJson) 
     resultString must /("id" -> id)
@@ -94,6 +95,46 @@ class UsersSpec() extends Specification with JsonMatchers{
         FakeRequest().withFormUrlEncodedBody("name" -> name)
       )
       checkCreatedCategory(id, name, user, result)
+    }
+
+    "be able of creating a tasks in a category" in new WithApplication(fakeApp) {
+      var id = 1; var user = "pedro"; var categoryId = 1; var label = "HelloWorld"; var date = Task.formatter.format(new Date())
+      var result = controllers.Tasks.create(user, categoryId)(
+        FakeRequest().withFormUrlEncodedBody(
+          "label" -> label,
+          "dueTo" -> date
+        )
+      )
+      status(result) mustEqual 201
+      contentType(result) must beSome.which(_ == "application/json")
+      header(LOCATION, result) must beSome.which(_ == "/tasks/" + id)
+      val resultJson: JsValue = contentAsJson(result)
+      val resultString = Json.stringify(resultJson) 
+      resultString must /("id" -> id)
+      resultString must /("label" -> label)
+      resultString must /("user" -> user)
+      resultString must /("due_to" -> date)
+      resultString must /("category" -> categoryId)
+    }
+
+    "be able of adding a tasks in a category" in new WithApplication(fakeApp) {
+      setUp()
+      var id : Long = pedroTask.id; var category : Long = 1
+      var result = controllers.Tasks.update(id)(
+        FakeRequest().withFormUrlEncodedBody(
+          "label" -> pedroTask.label,
+          "category" -> category.toString()
+        )
+      )
+
+      status(result) mustEqual 200
+      contentType(result) must beSome.which(_ == "application/json")
+      val resultJson: JsValue = contentAsJson(result)
+      val resultString = Json.stringify(resultJson) 
+      resultString must /("id" -> id)
+      resultString must /("label" -> pedroTask.label)
+      resultString must /("user" -> pedroTask.user)
+      resultString must /("category" -> category)      
     }
   }
 }
