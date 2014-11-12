@@ -201,4 +201,13 @@ class TasksSpec() extends Specification {
       status(result) mustEqual 404
     }
   }
+
+  "A task" should {
+    "be editable" in new WithApplication(fakeApp) {
+      setUp();
+      val result = controllers.Tasks.update(anonymousTask.id)(
+        FakeRequest().withFormUrlEncodedBody("label" -> "HelloWorld")
+      )
+    }
+  }
 }
